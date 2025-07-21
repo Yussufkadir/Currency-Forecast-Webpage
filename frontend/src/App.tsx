@@ -33,12 +33,12 @@ function App() {
   const [days, setDays] = useState<number>(30);
   const [loading, setLoading] = useState<boolean>(false);
   const [forecast, setForecast] = useState<ForecastData | null>(null);
-  const [error, setError] = useState('');
+  const [error, setError] = useState<string>('');
 
   useEffect(() => {
     const fetchPairs = async () => {
       try{
-        const response = await axios.get(`${API_URL}/pairs`);
+        const response = await axios.get<{ pairs: string[] }>(`${API_URL}/pairs`);
         setPairs(response.data.pairs);
         if (response.data.pairs.length > 0){
           setSelectedPair(response.data.pairs[0])
@@ -62,12 +62,12 @@ function App() {
     try {
       const response = await axios.post(`${API_URL}/predict`, {
         pair: selectedPair,
-        days: parseInt(days, 10)
+        days: days
       });
 
       console.log("API Response Data:", response.data)
 
-      const chartData = response.data.dates.map((date, index) => ({
+      const chartData: ChartDataItem[]  = response.data.dates.map((date: string, index: number) => ({
         date,
         forecast: response.data.forecast[index],
         lowerBound: response.data.lower_bound[index],
@@ -82,8 +82,10 @@ function App() {
       });
 
     } catch (err){
-      console.error('Error fetching prediction:', err);
-      const errorMsg = err.response?.data?.detail || 'An unknown error occured'
+      let errorMsg = 'An unknown error occured.';
+      if (axios.isAxiosError<ApiError>(err) && err.response) {
+        errorMsg = err.response.data.detail
+      }
       setError('Failed to get prediction, Please try again later.')
     } finally{
       setLoading(false);
