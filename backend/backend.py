@@ -5,12 +5,16 @@ import joblib
 import os
 import pandas as pd
 from datetime import datetime, timedelta
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 app = FastAPI(title="Forex Prediction API")
 
 
 ## we need to use CORS middleware to connect frontent to fastapi backend
-app.middleware(
+app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:5173"],
     allow_credentials=True,
@@ -58,28 +62,39 @@ def predict(request: PredictiononRequest):
     
     pair = request.pair
     days = min(request.days, 90)
+    logger.info(f"Received prediction request for {pair} for {days} days.")
 
     if pair not in models:
+        logger.error(f"Model for pair {pair} not found")
         raise HTTPException(status_code=404, detail="This pair does not exist for the model")
     
     model = models[pair]
     
-    future = model.make_future_dataframe(period=days)
+    try:
+        
+        logger.info("Creating future dataframe...")
+        future = model.make_future_dataframe(periods=days)
 
-    forecast = model.predict(future)
+        logger.info("Making prediction...")       
+        forecast = model.predict(future)
+        logger.info("Prediction successful.")
 
-    forecast_values = forecast['yhat'].tail(days).tolist()
-    forecast_dates = [d.strftime("%Y-$m-$d") for d in forecast["ds"].tail(days).tolist()]
-    lower_bounds = forecast['yhat_lower'].tail(days).tolist()
-    upper_bounds = forecast['yhat_upper'].tail(days).tolist()
+        forecast_values = forecast['yhat'].tail(days).tolist()
+        forecast_dates = [d.strftime("%Y-%m-%d") for d in forecast["ds"].tail(days).tolist()]
+        lower_bounds = forecast['yhat_lower'].tail(days).tolist()
+        upper_bounds = forecast['yhat_upper'].tail(days).tolist()
 
-    return {
-        "pair": pair,
-        "forecast": forecast_values,
-        "dates": forecast_dates,
-        "lower_bound": lower_bounds,
-        "upper_bound": upper_bounds
-    }
+        logger.info(f"Returning forecast data for {pair}.")
+        return {
+            "pair": pair,
+            "forecast": forecast_values,
+            "dates": forecast_dates,
+            "lower_bound": lower_bounds,
+            "upper_bound": upper_bounds
+        }
+    except Exception as e:
+        logging.error(f"Error occured in prediction for {pair}")
+        raise HTTPException(status_code=500, detail=f"An internal error occurred while making the prediction: {e}")
 
 @app.get("/api/health")
 def health_check():
