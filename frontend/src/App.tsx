@@ -27,6 +27,13 @@ interface ApiError{
 }
 
 
+interface LiveRate {
+  pair: string;
+  rate: number;
+  timestamp: string;
+  source: string;
+}
+
 function App() {
   const [pairs, setPairs] = useState<string[]>([]);
   const [selectedPair, setSelectedPair] = useState<string>('');
@@ -34,6 +41,21 @@ function App() {
   const [loading, setLoading] = useState<boolean>(false);
   const [forecast, setForecast] = useState<ForecastData | null>(null);
   const [error, setError] = useState<string>('');
+  const [liveRates, setLiveRates] = useState<{[key: string]: LiveRate}>({});
+  const [loadingRates, setLoadingRates] = useState<boolean>(false);
+
+  // Fetch live rates
+  const fetchLiveRates = async () => {
+    setLoadingRates(true);
+    try {
+      const response = await axios.get<{ live_rates: {[key: string]: LiveRate} }>(`${API_URL}/live-rates`);
+      setLiveRates(response.data.live_rates);
+    } catch (err) {
+      console.error('Error fetching live rates:', err);
+    } finally {
+      setLoadingRates(false);
+    }
+  };
 
   useEffect(() => {
     const fetchPairs = async () => {
@@ -43,6 +65,8 @@ function App() {
         if (response.data.pairs.length > 0){
           setSelectedPair(response.data.pairs[0])
         }
+        // Fetch live rates after getting pairs
+        await fetchLiveRates();
       } catch (err){
         console.error('Error fetching currency pairs:', err);
         setError('Failed to load currency pairs. Is the server running ?')
@@ -98,6 +122,42 @@ function App() {
         <Typography variant="h3" component="h1" gutterBottom>
           Forex Forecast
         </Typography>
+
+        {/* Live Rates Display */}
+        <Paper sx={{ p: 2, mb: 3, bgcolor: '#f5f5f5' }}>
+          <Typography variant="h6" gutterBottom>
+            Live Exchange Rates {loadingRates && <CircularProgress size={16} />}
+          </Typography>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+            {Object.entries(liveRates).map(([pair, rateData]) => (
+              <Box key={pair} sx={{ 
+                border: '1px solid #ddd', 
+                borderRadius: 1, 
+                p: 1, 
+                minWidth: 120,
+                bgcolor: selectedPair === pair ? '#e3f2fd' : 'white'
+              }}>
+                <Typography variant="subtitle2" fontWeight="bold">
+                  {pair}
+                </Typography>
+                <Typography variant="body2">
+                  {rateData.rate.toFixed(5)}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  {new Date(rateData.timestamp).toLocaleTimeString()}
+                </Typography>
+              </Box>
+            ))}
+          </Box>
+          <Button 
+            size="small" 
+            onClick={fetchLiveRates} 
+            sx={{ mt: 1 }}
+            disabled={loadingRates}
+          >
+            Refresh Rates
+          </Button>
+        </Paper>
         
         {error && (
           <Paper sx={{ p: 2, mb: 2, bgcolor: '#ffebee' }}>
