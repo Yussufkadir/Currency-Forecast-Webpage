@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios';
-import{
+import {
   Container, Typography, Box, FormControl, InputLabel,
-  MenuItem, Select, Button, CircularProgress, Paper
+  MenuItem, Select, Button, CircularProgress, Paper, Drawer,
+  IconButton, Divider, Slider, Switch, FormControlLabel, Card, CardContent
 } from '@mui/material';
+import type { SelectChangeEvent } from '@mui/material';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'; 
 import './App.css'
 
@@ -34,6 +36,15 @@ interface LiveRate {
   source: string;
 }
 
+interface ThemeSettings{
+  backgroundColor: string;
+  textColor: string;
+  cardColor: string;
+  containerMaxWidth: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+  fontSize: number;
+  darkMode: boolean;
+}
+
 function App() {
   const [pairs, setPairs] = useState<string[]>([]);
   const [selectedPair, setSelectedPair] = useState<string>('');
@@ -43,8 +54,42 @@ function App() {
   const [error, setError] = useState<string>('');
   const [liveRates, setLiveRates] = useState<{[key: string]: LiveRate}>({});
   const [loadingRates, setLoadingRates] = useState<boolean>(false);
+  const [settingsOpen, setSettingsOpen] = useState<boolean>(false);
 
-  // Fetch live rates
+  const [themeSettings, setThemeSettings] = useState<ThemeSettings>({
+    backgroundColor: '#000000',
+    textColor: '#ffffff',
+    cardColor: '#1a1a1a',
+    containerMaxWidth: 'lg',
+    fontSize: 14,
+    darkMode: true
+   });
+
+   const backgroundOptions = [
+    {label: 'Black', value: '#000000'},
+    {label: 'Dark Grey', value: '#212121'},
+    {label: 'Navy Blue', value: '#1a237e'},
+    {label: 'Dark Green', value: '#1b5e20'},
+    {label: 'White', value: '#ffffff'},
+    {label: 'Light Gray', value: '#f5f5f5'}
+   ];
+
+  const containerSizeOptions = [
+    {label: 'Extra Small', value: 'xs' as const},
+    {label: 'Small', value: 'sm' as const},
+    {label: 'Medium', value: 'md' as const},
+    {label: 'Large', value: 'lg' as const},
+    {label: 'Extra Large', value: 'xl' as const}
+  ];
+
+  useEffect(() => {
+    document.body.style.backgroundColor = themeSettings.backgroundColor;
+    document.body.style.color = themeSettings.textColor;
+    document.body.style.fontSize = `${themeSettings.fontSize}px`;
+    document.body.style.margin = '0';
+    document.body.style.minHeight = '100vh';
+  }, [themeSettings]);
+
   const fetchLiveRates = async () => {
     setLoadingRates(true);
     try {
@@ -106,152 +151,350 @@ function App() {
       });
 
     } catch (err){
-      let errorMsg = 'An unknown error occured.';
       if (axios.isAxiosError<ApiError>(err) && err.response) {
-        errorMsg = err.response.data.detail
+        setError(err.response.data.detail || 'Failed to get prediction. Please try again later.');
+      } else {
+        setError('Failed to get prediction. Please try again later.');
       }
-      setError('Failed to get prediction, Please try again later.')
     } finally{
       setLoading(false);
     }
   };
 
-  return(
-    <Container maxWidth="lg">
-      <Box sx={{ my: 4 }}>
-        <Typography variant="h3" component="h1" gutterBottom>
-          Forex Forecast
-        </Typography>
+  const handleThemeChange = <K extends keyof ThemeSettings>(key: K, value: ThemeSettings[K]) => {
+    setThemeSettings(prev => ({
+      ...prev,
+      [key]: value
+    }));
+  };
 
-        {/* Live Rates Display */}
-        <Paper sx={{ p: 2, mb: 3, bgcolor: '#f5f5f5' }}>
-          <Typography variant="h6" gutterBottom>
-            Live Exchange Rates {loadingRates && <CircularProgress size={16} />}
-          </Typography>
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-            {Object.entries(liveRates).map(([pair, rateData]) => (
-              <Box key={pair} sx={{ 
-                border: '1px solid #ddd', 
-                borderRadius: 1, 
-                p: 1, 
-                minWidth: 120,
-                bgcolor: selectedPair === pair ? '#e3f2fd' : 'white'
-              }}>
-                <Typography variant="subtitle2" fontWeight="bold">
-                  {pair}
-                </Typography>
-                <Typography variant="body2">
-                  {rateData.rate.toFixed(5)}
-                </Typography>
-                <Typography variant="caption" color="text.secondary">
-                  {new Date(rateData.timestamp).toLocaleTimeString()}
-                </Typography>
-              </Box>
-            ))}
-          </Box>
-          <Button 
-            size="small" 
-            onClick={fetchLiveRates} 
-            sx={{ mt: 1 }}
-            disabled={loadingRates}
-          >
-            Refresh Rates
-          </Button>
-        </Paper>
-        
-        {error && (
-          <Paper sx={{ p: 2, mb: 2, bgcolor: '#ffebee' }}>
-            <Typography color="error">{error}</Typography>
-          </Paper>
-        )}
-        
-        <Box sx={{ mb: 4, display: 'flex', gap: 2, alignItems: 'flex-end' }}>
-          <FormControl sx={{ minWidth: 200 }}>
-            <InputLabel>Currency Pair</InputLabel>
-            <Select
-              value={selectedPair}
-              onChange={(e) => setSelectedPair(e.target.value)}
-              label="Currency Pair"
-            >
-              {pairs.map((pair) => (
-                <MenuItem key={pair} value={pair}>
-                  {pair}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          
-          <FormControl sx={{ width: 100 }}>
-            <InputLabel>Days</InputLabel>
-            <Select
-              value={days}
-              onChange={(e) => setDays(e.target.value)}
-              label="Days"
-            >
-              <MenuItem value={7}>7</MenuItem>
-              <MenuItem value={14}>14</MenuItem>
-              <MenuItem value={30}>30</MenuItem>
-              <MenuItem value={60}>60</MenuItem>
-              <MenuItem value={90}>90</MenuItem>
-            </Select>
-          </FormControl>
-          
-          <Button 
-            variant="contained" 
-            onClick={handlePredict}
-            disabled={!selectedPair || loading}
-          >
-            {loading ? <CircularProgress size={24} /> : 'Predict'}
-          </Button>
-        </Box>
-        
-        {forecast && (
-          <Box sx={{ height: 500 }}>
-            <Typography variant="h5" gutterBottom>
-              {forecast.pair} - {days} Day Forecast
+  const toggleDarkMode = () => {
+    if (themeSettings.darkMode) {
+        handleThemeChange('backgroundColor', '#ffffff');
+  handleThemeChange('textColor', '#000000');
+  handleThemeChange('cardColor', '#f5f5f5');
+  handleThemeChange('darkMode', false);
+    }
+    else {
+        handleThemeChange('backgroundColor', '#000000');
+        handleThemeChange('textColor', '#ffffff');
+        handleThemeChange('cardColor', '#1a1a1a');
+        handleThemeChange('darkMode', true);  
+    }
+  };
+  return(
+    <div style={{ 
+      backgroundColor: themeSettings.backgroundColor, 
+      minHeight: '100vh',
+      color: themeSettings.textColor,
+      transition: 'all 0.3s ease'
+    }}>
+      <Container maxWidth={themeSettings.containerMaxWidth}>
+        <Box sx={{ py: 4 }}>
+          {/* Header with Settings Button */}
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+            <Typography variant="h3" component="h1" sx={{ color: themeSettings.textColor }}>
+              Forex Forecast
             </Typography>
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart
-                data={forecast.chartData}
-                margin={{ top: 20, right: 30, left: 20, bottom: 50 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis 
-                  dataKey="date" 
-                  angle={-45}
-                  textAnchor="end"
-                  height={70}
-                />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Line 
-                  type="monotone" 
-                  dataKey="forecast" 
-                  stroke="#8884d8" 
-                  name="Forecast" 
-                  strokeWidth={2}
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="upperBound" 
-                  stroke="#82ca9d" 
-                  name="Upper Bound" 
-                  strokeDasharray="5 5"
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="lowerBound" 
-                  stroke="#ff8042" 
-                  name="Lower Bound" 
-                  strokeDasharray="5 5"
-                />
-              </LineChart>
-            </ResponsiveContainer>
+            <IconButton 
+              onClick={() => setSettingsOpen(true)}
+              sx={{ color: themeSettings.textColor }}
+              aria-label="Open settings"
+            >
+              <span role="img" aria-hidden="true">⚙️</span>
+            </IconButton>
           </Box>
-        )}
-      </Box>
-    </Container>
+
+          {/* Settings Drawer */}
+          <Drawer
+            anchor="right"
+            open={settingsOpen}
+            onClose={() => setSettingsOpen(false)}
+            sx={{
+              '& .MuiDrawer-paper': {
+                width: 320,
+                backgroundColor: themeSettings.cardColor,
+                color: themeSettings.textColor
+              }
+            }}
+          >
+            <Box sx={{ p: 2 }}>
+              <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <span role="img" aria-hidden="true">🎨</span>
+                Theme Settings
+              </Typography>
+              <Divider sx={{ my: 2, borderColor: themeSettings.textColor + '30' }} />
+              
+              {/* Dark Mode Toggle */}
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={themeSettings.darkMode}
+                    onChange={toggleDarkMode}
+                    color="primary"
+                  />
+                }
+                label="Dark Mode"
+                sx={{ mb: 3, color: themeSettings.textColor }}
+              />
+
+              {/* Background Color */}
+              <Typography variant="subtitle2" gutterBottom sx={{ color: themeSettings.textColor }}>
+                Background Color
+              </Typography>
+              <FormControl fullWidth sx={{ mb: 3 }}>
+                <Select
+                  value={themeSettings.backgroundColor}
+                  onChange={(e) => handleThemeChange('backgroundColor', e.target.value)}
+                  size="small"
+                  sx={{ 
+                    color: themeSettings.textColor,
+                    '& .MuiOutlinedInput-notchedOutline': {
+                      borderColor: themeSettings.textColor + '50'
+                    }
+                  }}
+                >
+                  {backgroundOptions.map((option) => (
+                    <MenuItem key={option.value} value={option.value}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Box
+                          sx={{
+                            width: 20,
+                            height: 20,
+                            backgroundColor: option.value,
+                            border: '1px solid #ccc',
+                            borderRadius: 0.5
+                          }}
+                        />
+                        {option.label}
+                      </Box>
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+
+              {/* Container Size */}
+              <Typography variant="subtitle2" gutterBottom sx={{ color: themeSettings.textColor }}>
+                Container Size
+              </Typography>
+              <FormControl fullWidth sx={{ mb: 3 }}>
+                <Select
+                  value={themeSettings.containerMaxWidth}
+                  onChange={(e: SelectChangeEvent<ThemeSettings['containerMaxWidth']>) =>
+                    handleThemeChange('containerMaxWidth', e.target.value as ThemeSettings['containerMaxWidth'])
+                  }
+                  size="small"
+                  sx={{ 
+                    color: themeSettings.textColor,
+                    '& .MuiOutlinedInput-notchedOutline': {
+                      borderColor: themeSettings.textColor + '50'
+                    }
+                  }}
+                >
+                  {containerSizeOptions.map((option) => (
+                    <MenuItem key={option.value} value={option.value}>
+                      {option.label}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+
+              {/* Font Size */}
+              <Typography variant="subtitle2" gutterBottom sx={{ color: themeSettings.textColor }}>
+                Font Size: {themeSettings.fontSize}px
+              </Typography>
+              <Slider
+                value={themeSettings.fontSize}
+                onChange={(_, value) =>
+                  handleThemeChange('fontSize', (Array.isArray(value) ? value[0] : value) as ThemeSettings['fontSize'])
+                }
+                min={12}
+                max={20}
+                sx={{ mb: 3, color: 'primary.main' }}
+              />
+
+              <Button
+                fullWidth
+                variant="outlined"
+                onClick={() => setSettingsOpen(false)}
+                sx={{ 
+                  color: themeSettings.textColor,
+                  borderColor: themeSettings.textColor + '50'
+                }}
+              >
+                Close Settings
+              </Button>
+            </Box>
+          </Drawer>
+
+          {/* Live Rates Display */}
+          <Paper sx={{ 
+            p: 2, 
+            mb: 3, 
+            backgroundColor: themeSettings.cardColor,
+            color: themeSettings.textColor 
+          }}>
+            <Typography variant="h6" gutterBottom>
+              Live Exchange Rates {loadingRates && <CircularProgress size={16} />}
+            </Typography>
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+              {Object.entries(liveRates).map(([pair, rateData]) => (
+                <Box key={pair} sx={{ 
+                  border: `1px solid ${themeSettings.textColor}30`, 
+                  borderRadius: 1, 
+                  p: 1, 
+                  minWidth: 120,
+                  backgroundColor: selectedPair === pair ? (themeSettings.darkMode ? '#1976d2' : '#e3f2fd') : 'transparent'
+                }}>
+                  <Typography variant="subtitle2" fontWeight="bold">
+                    {pair}
+                  </Typography>
+                  <Typography variant="body2">
+                    {rateData.rate.toFixed(5)}
+                  </Typography>
+                  <Typography variant="caption" sx={{ opacity: 0.7 }}>
+                    {new Date(rateData.timestamp).toLocaleTimeString()}
+                  </Typography>
+                </Box>
+              ))}
+            </Box>
+            <Button 
+              size="small" 
+              onClick={fetchLiveRates} 
+              sx={{ mt: 1 }}
+              disabled={loadingRates}
+              variant="outlined"
+            >
+              Refresh Rates
+            </Button>
+          </Paper>
+          
+          {error && (
+            <Paper sx={{ 
+              p: 2, 
+              mb: 2, 
+              backgroundColor: '#d32f2f20',
+              color: '#d32f2f',
+              border: '1px solid #d32f2f50' 
+            }}>
+              <Typography>{error}</Typography>
+            </Paper>
+          )}
+          
+          <Box sx={{ mb: 4, display: 'flex', gap: 2, alignItems: 'flex-end' }}>
+            <FormControl sx={{ minWidth: 200 }}>
+              <InputLabel sx={{ color: themeSettings.textColor + '80' }}>Currency Pair</InputLabel>
+              <Select
+                value={selectedPair}
+                onChange={(e) => setSelectedPair(e.target.value)}
+                label="Currency Pair"
+                sx={{ 
+                  color: themeSettings.textColor,
+                  '& .MuiOutlinedInput-notchedOutline': {
+                    borderColor: themeSettings.textColor + '50'
+                  }
+                }}
+              >
+                {pairs.map((pair) => (
+                  <MenuItem key={pair} value={pair}>
+                    {pair}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            
+            <FormControl sx={{ width: 100 }}>
+              <InputLabel sx={{ color: themeSettings.textColor + '80' }}>Days</InputLabel>
+              <Select
+                value={days}
+                onChange={(e: SelectChangeEvent<number>) => setDays(Number(e.target.value))}
+                label="Days"
+                sx={{ 
+                  color: themeSettings.textColor,
+                  '& .MuiOutlinedInput-notchedOutline': {
+                    borderColor: themeSettings.textColor + '50'
+                  }
+                }}
+              >
+                <MenuItem value={7}>7</MenuItem>
+                <MenuItem value={14}>14</MenuItem>
+                <MenuItem value={30}>30</MenuItem>
+                <MenuItem value={60}>60</MenuItem>
+                <MenuItem value={90}>90</MenuItem>
+              </Select>
+            </FormControl>
+            
+            <Button 
+              variant="contained" 
+              onClick={handlePredict}
+              disabled={!selectedPair || loading}
+            >
+              {loading ? <CircularProgress size={24} /> : 'Predict'}
+            </Button>
+          </Box>
+          
+          {forecast && (
+            <Card sx={{ 
+              backgroundColor: themeSettings.cardColor,
+              color: themeSettings.textColor 
+            }}>
+              <CardContent>
+                <Typography variant="h5" gutterBottom>
+                  {forecast.pair} - {days} Day Forecast
+                </Typography>
+                <Box sx={{ height: 500 }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart
+                      data={forecast.chartData}
+                      margin={{ top: 20, right: 30, left: 20, bottom: 50 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" stroke={themeSettings.textColor + '20'} />
+                      <XAxis 
+                        dataKey="date" 
+                        angle={-45}
+                        textAnchor="end"
+                        height={70}
+                        tick={{ fill: themeSettings.textColor }}
+                      />
+                      <YAxis tick={{ fill: themeSettings.textColor }} />
+                      <Tooltip 
+                        contentStyle={{
+                          backgroundColor: themeSettings.cardColor,
+                          color: themeSettings.textColor,
+                          border: `1px solid ${themeSettings.textColor}30`
+                        }}
+                      />
+                      <Legend />
+                      <Line 
+                        type="monotone" 
+                        dataKey="forecast" 
+                        stroke="#8884d8" 
+                        name="Forecast" 
+                        strokeWidth={2}
+                      />
+                      <Line 
+                        type="monotone" 
+                        dataKey="upperBound" 
+                        stroke="#82ca9d" 
+                        name="Upper Bound" 
+                        strokeDasharray="5 5"
+                      />
+                      <Line 
+                        type="monotone" 
+                        dataKey="lowerBound" 
+                        stroke="#ff8042" 
+                        name="Lower Bound" 
+                        strokeDasharray="5 5"
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </Box>
+              </CardContent>
+            </Card>
+          )}
+        </Box>
+      </Container>
+    </div>
   );
 }
 export default App;

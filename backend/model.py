@@ -56,8 +56,10 @@ def create_and_save_models(data_dir, models_dir):
     return results
 
 if __name__ == "__main__":
-    data_dir = r"C:\Users\yusuf\OneDrive\Desktop\Forex Project\processed"
-    models_dir = r"C:\Users\yusuf\OneDrive\Desktop\Forex Project\models"
+    local_path = os.path.dirname(os.path.abspath(__file__))
+    root_path = os.path.dirname(local_path)
+    data_dir = os.path.join(root_path, "processed")
+    models_dir = os.path.join(root_path, "models")
     results = create_and_save_models(data_dir, models_dir)
     print("\nTraining Results:")
     for pair, status in results.items():
