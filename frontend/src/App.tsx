@@ -8,6 +8,7 @@ import {
 import type { SelectChangeEvent } from '@mui/material';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'; 
 import './App.css'
+import { TheatersOutlined } from '@mui/icons-material';
 
 const API_URL = 'http://localhost:8000/api';
 
@@ -171,9 +172,9 @@ function App() {
   const toggleDarkMode = () => {
     if (themeSettings.darkMode) {
         handleThemeChange('backgroundColor', '#ffffff');
-  handleThemeChange('textColor', '#000000');
-  handleThemeChange('cardColor', '#f5f5f5');
-  handleThemeChange('darkMode', false);
+        handleThemeChange('textColor', '#000000');
+        handleThemeChange('cardColor', '#f5f5f5');
+        handleThemeChange('darkMode', false);
     }
     else {
         handleThemeChange('backgroundColor', '#000000');
@@ -361,7 +362,19 @@ function App() {
             <Button 
               size="small" 
               onClick={fetchLiveRates} 
-              sx={{ mt: 1 }}
+              sx={{ 
+                mt: 1,
+                color: themeSettings.darkMode ? '#90caf920' : '#1976d2',
+                borderColor: themeSettings.darkMode ? '#90caf9' : '#1976d2',
+                '&:hover': {
+                  backgroundColor: themeSettings.darkMode ? '#90caf920' : '#1976d220',
+                  borderColor: themeSettings.darkMode ? '#64b5f6' : '#1565c0'
+                },
+                '&:disabled': {
+                  color: themeSettings.darkMode ? '#666666' : '#bdbdbd',
+                  borderColor: themeSettings.darkMode ? '#404040' : '#e0e0e0'
+                } 
+              }}
               disabled={loadingRates}
               variant="outlined"
             >
@@ -381,17 +394,48 @@ function App() {
             </Paper>
           )}
           
-          <Box sx={{ mb: 4, display: 'flex', gap: 2, alignItems: 'flex-end' }}>
+          <Box sx={{ mb: 4, display: 'flex', gap: 2, alignItems: 'flex-end', flexWrap: 'wrap' }}>
             <FormControl sx={{ minWidth: 200 }}>
-              <InputLabel sx={{ color: themeSettings.textColor + '80' }}>Currency Pair</InputLabel>
+              <InputLabel sx={{ 
+                color: themeSettings.textColor + '80',
+                '&.Mui-focused': {color: themeSettings.darkMode ? '#90caf9' : '#1976d2'}
+              }}>Currency Pair</InputLabel>
               <Select
                 value={selectedPair}
                 onChange={(e) => setSelectedPair(e.target.value)}
                 label="Currency Pair"
+                IconComponent={() => null}
                 sx={{ 
                   color: themeSettings.textColor,
+                  backgroundColor: themeSettings.darkMode ? '#2a2a2a' : '#fafafa',
                   '& .MuiOutlinedInput-notchedOutline': {
                     borderColor: themeSettings.textColor + '50'
+                  },
+                  '&:hover .MuiOutlinedInput-notechedOutline': {
+                    borderColor: themeSettings.textColor + '70'
+                  },
+                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                    borderColor: themeSettings.darkMode ? '#90caf9' : '#1976d2'
+                  }
+                }}
+                MenuProps={{
+                  PaperProps: {
+                    sx: {
+                      backgroundColor: themeSettings.cardColor,
+                      color: themeSettings.textColor,
+                      border: `1px solid ${themeSettings.textColor}30`,
+                      '& .MuiMenuItem-root': {
+                        '&:hover': {
+                          backgroundColor: themeSettings.darkMode ? '#404040' : '#e0e0e0'
+                        },
+                        '&.Mui-selected': {
+                          backgroundColor: themeSettings.darkMode ? '#1976d2' : '#bbdefb',
+                          '&:hover': {
+                            backgroundColor: themeSettings.darkMode ? '#1565c0' : '#90caf9'
+                          }
+                        }
+                      }
+                    }
                   }
                 }}
               >
@@ -404,15 +448,49 @@ function App() {
             </FormControl>
             
             <FormControl sx={{ width: 100 }}>
-              <InputLabel sx={{ color: themeSettings.textColor + '80' }}>Days</InputLabel>
+              <InputLabel sx={{ 
+                color: themeSettings.textColor + '80',
+                '&.Mui-focused': {color: themeSettings.darkMode ? '#90caf9' : '#1976d2'}
+                }}>
+                  Days
+              </InputLabel>
               <Select
                 value={days}
                 onChange={(e: SelectChangeEvent<number>) => setDays(Number(e.target.value))}
                 label="Days"
+                IconComponent={() => null}
                 sx={{ 
                   color: themeSettings.textColor,
+                  backgroundColor: themeSettings.darkMode ? '#2a2a2a' : '#fafafa',
                   '& .MuiOutlinedInput-notchedOutline': {
                     borderColor: themeSettings.textColor + '50'
+                  },
+                  '&:hover .MuiOutlinedInput-notchedOutline': {
+                    borderColor: themeSettings.textColor + '70'
+                  },
+                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                    borderColor: themeSettings.darkMode ? '#90caf9' : '#1976d2',
+                    borderWidth: 2
+                  }
+                }}
+                MenuProps={{
+                  PaperProps: {
+                    sx: {
+                      backgrounColor: themeSettings.cardColor,
+                      color: themeSettings.textColor,
+                      border: `1px solid ${themeSettings.textColor}30`,
+                      '& .MuiMenuItem-root': {
+                        '&:hover': {
+                          backgroundColor: themeSettings.darkMode ? '#404040' : '#e0e0e0'
+                        },
+                        '&.Mui-selected': {
+                          backgroundColor: themeSettings.darkMode ? '#1976d2' : '#bbdefb',
+                          '&:hover': {
+                            backgroundColor: themeSettings.darkMode ? '#1565c0' : '#90caf9'
+                          }
+                        }
+                      }
+                    }
                   }
                 }}
               >
@@ -428,6 +506,20 @@ function App() {
               variant="contained" 
               onClick={handlePredict}
               disabled={!selectedPair || loading}
+              sx={{
+                height: 40,
+                px: 3,
+                backgroundColor: themeSettings.darkMode ? '#1976d2' : '#1976d2',
+                color: '#ffffff',
+                fontWeight: 600,
+                '&:hover': {
+                  backgroundColor: themeSettings.darkMode ? '#1565c0' : '#1565c0'
+                },
+                '&:disabled': {
+                  backgroundColor: themeSettings.darkMode ? '#404040' : '#bdbdbd',
+                  color: themeSettings.darkMode ? '#666666' : '#ffffff'  
+                }
+              }}
             >
               {loading ? <CircularProgress size={24} /> : 'Predict'}
             </Button>
