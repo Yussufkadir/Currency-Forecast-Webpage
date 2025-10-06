@@ -1,11 +1,33 @@
-I am doing a project using data from the https://forexsb.com/historical-forex-data where I try to create a model to make predictions on various currency exchanges. With this project my main goals are to learn:
-- Using Pyspark in a real project and see its ups and downs.
-- Creating a pipeline for both the data preparation and for the model deployment
-- Deploy a model and make predictions with it.
-- Integrate model to a website (Never done before !!)
-- To get a greater grasp at time-series data
+# 📈 AI Powered Forex Application
+
+Full-stack financial forex application with automated ML pipeline for multi-currency prediction.
+
+<img width="1408" height="684" alt="Screenshot 2025-10-06 at 20 42 10" src="https://github.com/user-attachments/assets/963f6c95-07d3-4527-b323-0c95701edbc8" />
+
+## 🎯 Features
+
+**Live Currency Exchange Rates** - real-time data integration
+**ML-Powered Forecasts** - Prophet-based time series predictions
+**Multi-Currency Support** - Supporting 4 currencies
+**Automated Pipeline** - Self-updating data ingestion and cleaning
+**Dark/Light Theme** - Customizable UI
+
+## 🛠️ Tech Stack
+
+**Frontend:**
+- React with TypeScript
+- Vite
+
+**Backend:**
+- Python
+- FastAPI
+- Prophet
+
+**Data Pipeline & ML:**
+- Jupyter Notebook
+- PySpark
+- NumPy
+- Pandas
+- Scikit-learn
 
 
-What I must learn and some question marks left on me (I do not understand this concepts in expert level and I could not get precise answers from the resouces that I use)
-- How to perform statistical testings appropriately
-- Why does taking daily seasonality testing throws nan value and rest of the time ranges do not do it.
