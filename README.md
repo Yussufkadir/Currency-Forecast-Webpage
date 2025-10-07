@@ -17,17 +17,43 @@ Full-stack financial forex application with automated ML pipeline for multi-curr
 **Frontend:**
 - React with TypeScript
 - Vite
+- MUI
 
 **Backend:**
 - Python
 - FastAPI
-- Prophet
+- Prophet(Time series forecasting)
 
 **Data Pipeline & ML:**
-- Jupyter Notebook
-- PySpark
-- NumPy
-- Pandas
-- Scikit-learn
+- Jupyter Notebook(Model experimentation and analysis)
+- PySpark(Data processing)
+- NumPy(Data manipulation)
+- Pandas(Data manipulation)
+- Statsmodels(Statistical testing and validation)
 
+## 🏗️ Architecture
 
+User Interface (React + TypeScript)
+         │
+         │ HTTP Requests
+         ▼
+    Backend API (Python/FastAPI)
+         │
+         ├─→ Live Rates Endpoint
+         │
+         ├─→ Prediction Endpoint
+         │        │
+         │        ▼
+         │   Prophet Model
+         │        ↑
+         │        │
+         └─→ Data Pipeline
+                  │
+                  ├─→ Data Ingestion (External API)
+                  │
+                  ├─→ Data Cleaning (PySpark/Pandas)
+                  │
+                  └─→ Feature Engineering
+                           │
+                           ▼
+                  Model Training (Jupyter)
