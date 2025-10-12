@@ -21,25 +21,35 @@ Built with automated data pipelines and Prophet time series forecasting.
 
 ### Installation
 ### 1. Clone the repository
-`git clone https://github.com/yourusername/forex-app.git
-cd forex-app`
+```bash
+git clone https://github.com/yourusername/forex-app.git
+cd forex-app
+```
 
 ### 2. Set up the backend
-`cd backend
-pip install -r requirements.txt`
+```bash
+cd backend
+pip install -r requirements.txt
+```
 
 ### 3. Set up the frontend
-`cd frontend
-bun install`
+```bash
+cd frontend
+bun install
+```
 
 ### 4. Run the Application
 > Note: you need to split the terminals.
 1. Run the backend
-`cd backend
-uvicorn backend:app --reload`
+```bash
+cd backend
+uvicorn backend:app --reload
+```
 2. Run the frontend
-`cd frontend
-bun run dev`
+``` bash
+cd frontend
+bun run dev
+```
 Visit http://localhost:5173 to see the application.(will be on frontend side.)
 
 ## 🏗️ Architecture
@@ -68,9 +78,10 @@ Visit http://localhost:5173 to see the application.(will be on frontend side.)
 ## 🛠️ Tech Stack
 
 ### Frontend
-#### Technology    Purpose
-- React         18UI framework with hooks
-- TypeScript    Type-safe development
-- Vite          Fast build tool and dev server
-- Material-UI   (MUI)Component library and theming
-- Recharts/Chart.js   Data visualization
+| Technology | Purpose |
+| --- | --- |
+| React | 18UI framework with hooks |
+| TypeScript | Type-safe development |
+| Vite | Fast build tool and dev server |
+| Material-UI | (MUI)Component library and theming |
+| Recharts/Chart.js | Data visualization | 
