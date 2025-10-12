@@ -42,25 +42,35 @@ uvicorn backend:app --reload`
 bun run dev`
 Visit http://localhost:5173 to see the application.(will be on frontend side.)
 
-## 🛠️ Tech Stack
-
-**Frontend:**
-- React with TypeScript
-- Vite
-- MUI
-
-**Backend:**
-- Python
-- FastAPI
-- Prophet(Time series forecasting)
-
-**Data Pipeline & ML:**
-- Jupyter Notebook(Model experimentation and analysis)
-- PySpark(Data processing)
-- NumPy(Data manipulation)
-- Pandas(Data manipulation)
-- Statsmodels(Statistical testing and validation)
-
 ## 🏗️ Architecture
 ![Forex_app_architecture_design drawio](https://github.com/user-attachments/assets/65258927-31ee-4268-9401-7a89ddb4089b)
 
+### Component Overview
+#### Frontend Layer
+
+- React + TypeScript interface with Material-UI components
+- Real-time data updates via REST API calls
+- Responsive charts and theme management
+
+#### Backend Layer
+
+- FastAPI endpoints for live rates, predictions, and historical data
+- Prophet ML model integration for forecasting
+- External API integration for real-time forex data
+
+#### Data Pipeline
+
+- Ingestion — Automated fetching from forex data sources
+- Cleaning — Data validation and preprocessing with PySpark
+- Feature Engineering — Technical indicators and transformations
+- Model Training — Jupyter-based experimentation and Prophet retraining
+
+## 🛠️ Tech Stack
+
+### Frontend
+#### Technology    Purpose
+React         18UI framework with hooks
+TypeScript    Type-safe development
+Vite          Fast build tool and dev server
+Material-UI   (MUI)Component library and theming
+Recharts/Chart.js   Data visualization
