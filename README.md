@@ -39,7 +39,8 @@ bun install
 ```
 
 ### 4. Run the Application
-> Note: you need to split the terminals.
+> [!NOTE]
+> you need to split the terminals.
 1. Run the backend
 ```bash
 cd backend
