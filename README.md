@@ -53,32 +53,6 @@ bun run dev
 Visit http://localhost:5173 to see the application.(will be on frontend side.)
 
 ## 🏗️ Architecture
-```mermaid
-User Interface (React + TypeScript)
-         │
-         │ HTTP Requests
-         ▼
-    Backend API (Python/FastAPI)
-         │
-         ├─→ Live Rates Endpoint
-         │
-         ├─→ Prediction Endpoint
-         │        │
-         │        ▼
-         │   Prophet Model
-         │        ↑
-         │        │
-         └─→ Data Pipeline
-                  │
-                  ├─→ Data Ingestion (External API)
-                  │
-                  ├─→ Data Cleaning (PySpark/Pandas)
-                  │
-                  └─→ Feature Engineering
-                           │
-                           ▼
-                  Model Training (Jupyter)
-```
 ![Forex_app_architecture_design drawio](https://github.com/user-attachments/assets/65258927-31ee-4268-9401-7a89ddb4089b)
 
 ### Component Overview
