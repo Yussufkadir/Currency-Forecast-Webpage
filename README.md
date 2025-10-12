@@ -69,8 +69,8 @@ Visit http://localhost:5173 to see the application.(will be on frontend side.)
 
 ### Frontend
 #### Technology    Purpose
-React         18UI framework with hooks
-TypeScript    Type-safe development
-Vite          Fast build tool and dev server
-Material-UI   (MUI)Component library and theming
-Recharts/Chart.js   Data visualization
+- React         18UI framework with hooks
+- TypeScript    Type-safe development
+- Vite          Fast build tool and dev server
+- Material-UI   (MUI)Component library and theming
+- Recharts/Chart.js   Data visualization
