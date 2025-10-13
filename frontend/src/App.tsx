@@ -8,7 +8,6 @@ import {
 import type { SelectChangeEvent } from '@mui/material';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'; 
 import './App.css'
-import { TheatersOutlined } from '@mui/icons-material';
 
 const API_URL = 'http://localhost:8000/api';
 
