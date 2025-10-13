@@ -1,15 +1,14 @@
 import { useState, useEffect } from 'react'
-import axios from 'axios';
+import { isAxiosError } from 'axios';
 import {
   Container, Typography, Box, FormControl, InputLabel,
   MenuItem, Select, Button, CircularProgress, Paper, Drawer,
   IconButton, Divider, Slider, Switch, FormControlLabel, Card, CardContent
 } from '@mui/material';
 import type { SelectChangeEvent } from '@mui/material';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'; 
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { apiClient } from './config/api';
 import './App.css'
-
-const API_URL = 'http://localhost:8000/api';
 
 interface ChartDataItem{
   date: string;
@@ -25,7 +24,7 @@ interface ForecastData{
 
 
 interface ApiError{
-  detail:string;
+  detail?:string;
 }
 
 
@@ -93,7 +92,7 @@ function App() {
   const fetchLiveRates = async () => {
     setLoadingRates(true);
     try {
-      const response = await axios.get<{ live_rates: {[key: string]: LiveRate} }>(`${API_URL}/live-rates`);
+      const response = await apiClient.get<{ live_rates: {[key: string]: LiveRate} }>('/live-rates');
       setLiveRates(response.data.live_rates);
     } catch (err) {
       console.error('Error fetching live rates:', err);
@@ -105,7 +104,7 @@ function App() {
   useEffect(() => {
     const fetchPairs = async () => {
       try{
-        const response = await axios.get<{ pairs: string[] }>(`${API_URL}/pairs`);
+        const response = await apiClient.get<{ pairs: string[] }>('/pairs');
         setPairs(response.data.pairs);
         if (response.data.pairs.length > 0){
           setSelectedPair(response.data.pairs[0])
@@ -129,7 +128,7 @@ function App() {
     setForecast(null);
 
     try {
-      const response = await axios.post(`${API_URL}/predict`, {
+      const response = await apiClient.post('/predict', {
         pair: selectedPair,
         days: days
       });
@@ -151,8 +150,8 @@ function App() {
       });
 
     } catch (err){
-      if (axios.isAxiosError<ApiError>(err) && err.response) {
-        setError(err.response.data.detail || 'Failed to get prediction. Please try again later.');
+      if (isAxiosError<ApiError>(err) && err.response) {
+        setError(err.response.data?.detail || 'Failed to get prediction. Please try again later.');
       } else {
         setError('Failed to get prediction. Please try again later.');
       }
