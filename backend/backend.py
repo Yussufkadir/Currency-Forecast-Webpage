@@ -69,6 +69,10 @@ class PredictiononResponse(BaseModel):
     lower_bound: list
     upper_bound: list
 
+@app.get("/")
+def read_root():
+    return{"message": "App is running", "status": "healthy"}
+
 @app.get("/api/pairs")
 def get_available_pairs():
     return {"pairs": list(models.keys())}
