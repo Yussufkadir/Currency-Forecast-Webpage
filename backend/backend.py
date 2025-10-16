@@ -9,16 +9,20 @@ from datetime import datetime, timedelta
 import logging
 import requests
 import asyncio
-from typing import Dict, Optional, Any
+from typing import Dict, Optional, Any, List
 from contextlib import asynccontextmanager
 import httpx
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+MODEL_SERVICE_URL = os.environ.get("MODEL_SERVICE_URL")
+MODEL_SERVICE_BASE = MODEL_SERVICE_URL.rstrip("/") if MODEL_SERVICE_URL else None
+
 model_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "models")
 
-models = {}
+models: Dict[str, Any] = {}
+available_pairs: List[str] = []
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -34,6 +38,25 @@ app = FastAPI(
     lifespan=lifespan
 )
 def load_models():
+    global available_pairs
+
+    if MODEL_SERVICE_BASE:
+        logger.info("MODEL_SERVICE_URL detected. Skipping local model loading and pulling pairs from remote service.")
+        try:
+            response = requests.get(f"{MODEL_SERVICE_BASE}/pairs", timeout=10)
+            response.raise_for_status()
+            data = response.json()
+            pairs = data.get("pairs", [])
+            if not isinstance(pairs, list):
+                raise ValueError("Remote /pairs response is not a list")
+            available_pairs = pairs
+            models.clear()
+            logger.info("Registered %d remote currency pairs", len(available_pairs))
+        except Exception as exc:
+            available_pairs = []
+            logger.error("Failed to retrieve pairs from remote model service: %s", exc)
+        return
+
     if not os.path.exists(model_dir):
         print(f"There is no {model_dir} directory")
         return
@@ -49,6 +72,8 @@ def load_models():
         
         model_path = os.path.join(model_dir, model_file)
         models[pair_name] = joblib.load(model_path)
+
+    available_pairs = list(models.keys())
     print(f"Loaded {len(models)} models: {', '.join(models.keys())}")
 
 app.add_middleware(
@@ -75,14 +100,34 @@ def read_root():
 
 @app.get("/api/pairs")
 def get_available_pairs():
+    if available_pairs:
+        return {"pairs": available_pairs}
     return {"pairs": list(models.keys())}
 
 @app.post("/api/predict", response_model=PredictiononResponse)
-def predict(request: PredictiononRequest):
+async def predict(request: PredictiononRequest):
     
     pair = request.pair
     days = min(request.days, 90)
     logger.info(f"Received prediction request for {pair} for {days} days.")
+
+    if MODEL_SERVICE_BASE:
+        try:
+            async with httpx.AsyncClient(timeout=60.0) as client:
+                response = await client.post(
+                    f"{MODEL_SERVICE_BASE}/predict",
+                    json=request.model_dump()
+                )
+                response.raise_for_status()
+                data = response.json()
+                logger.info("Forwarded prediction to remote model service for %s", pair)
+                return data
+        except httpx.HTTPStatusError as exc:
+            logger.error("Remote model service returned error %s: %s", exc.response.status_code, exc.response.text)
+            raise HTTPException(status_code=exc.response.status_code, detail=exc.response.text)
+        except Exception as exc:
+            logger.error("Failed to reach remote model service: %s", exc)
+            raise HTTPException(status_code=502, detail="Unable to reach remote model service")
 
     if pair not in models:
         logger.error(f"Model for pair {pair} not found")
@@ -165,14 +210,14 @@ async def get_live_rates():
         if cache_timestamp and (current_time - cache_timestamp).total_seconds() < CACHE_DURATION:
             return {"live_rates": live_rates_cache}
         
-        available_pairs = list(models.keys())
+        available_pairs_local = available_pairs if available_pairs else list(models.keys())
         live_rates = {}
 
         try:
             base_currencies = set()
             quote_currencies = set()
 
-            for pair in available_pairs:
+            for pair in available_pairs_local:
                 if len(pair) >= 6:
                     base = pair[:3]
                     quote = pair[3:6]
@@ -191,7 +236,7 @@ async def get_live_rates():
                     all_rates.update(result)
 
             timestamp = datetime.now().isoformat()
-            for pair in available_pairs:
+            for pair in available_pairs_local:
                 if len(pair) >= 6:
                     base = pair[:3]
                     quote = pair[3:6]
@@ -227,7 +272,7 @@ async def get_live_rates():
                 "NZDUSD": 0.6120
             }
 
-            for pair in available_pairs:
+            for pair in available_pairs_local:
                 if pair in mock_rates:
                     live_rates[pair] = {
                         "pair": pair,
