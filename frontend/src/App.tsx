@@ -7,7 +7,7 @@ import {
 } from '@mui/material';
 import type { SelectChangeEvent } from '@mui/material';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { apiClient } from './config/api';
+import { coreApiClient, modelApiClient } from './config/api';
 import './App.css'
 
 interface ChartDataItem{
@@ -92,7 +92,7 @@ function App() {
   const fetchLiveRates = async () => {
     setLoadingRates(true);
     try {
-  const response = await apiClient.get<{ live_rates: {[key: string]: LiveRate} }>('/live-rates');
+  const response = await coreApiClient.get<{ live_rates: {[key: string]: LiveRate} }>('/live-rates');
       setLiveRates(response.data.live_rates);
     } catch (err) {
       console.error('Error fetching live rates:', err);
@@ -104,7 +104,7 @@ function App() {
   useEffect(() => {
     const fetchPairs = async () => {
       try{
-  const response = await apiClient.get<{ pairs: string[] }>('/pairs');
+  const response = await coreApiClient.get<{ pairs: string[] }>('/pairs');
         setPairs(response.data.pairs);
         if (response.data.pairs.length > 0){
           setSelectedPair(response.data.pairs[0])
@@ -127,7 +127,7 @@ function App() {
     setForecast(null);
 
     try {
-  const response = await apiClient.post('/predict', {
+  const response = await modelApiClient.post('/predict', {
         pair: selectedPair,
         days: days
       });
