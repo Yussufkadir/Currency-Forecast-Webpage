@@ -92,7 +92,7 @@ function App() {
   const fetchLiveRates = async () => {
     setLoadingRates(true);
     try {
-  const response = await coreApiClient.get<{ live_rates: {[key: string]: LiveRate} }>('/live-rates');
+  const response = await coreApiClient.get<{ live_rates: {[key: string]: LiveRate} }>('api/live-rates');
       setLiveRates(response.data.live_rates);
     } catch (err) {
       console.error('Error fetching live rates:', err);
@@ -104,7 +104,7 @@ function App() {
   useEffect(() => {
     const fetchPairs = async () => {
       try{
-  const response = await coreApiClient.get<{ pairs: string[] }>('/pairs');
+  const response = await coreApiClient.get<{ pairs: string[] }>('api/pairs');
         setPairs(response.data.pairs);
         if (response.data.pairs.length > 0){
           setSelectedPair(response.data.pairs[0])
@@ -127,7 +127,7 @@ function App() {
     setForecast(null);
 
     try {
-  const response = await modelApiClient.post('/predict', {
+  const response = await modelApiClient.post('api/predict', {
         pair: selectedPair,
         days: days
       });
