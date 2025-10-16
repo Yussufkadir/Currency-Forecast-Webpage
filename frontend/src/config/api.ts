@@ -1,15 +1,16 @@
 import axios, { type AxiosRequestConfig } from 'axios';
 
-const rawBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+const DEFAULT_BASE_URL = 'http://localhost:8000/api';
 
-export const API_URL = rawBaseUrl.replace(/\/$/, '');
+const configuredBaseUrl = import.meta.env.VITE_API_URL ?? DEFAULT_BASE_URL;
+
+export const API_URL = configuredBaseUrl.replace(/\/$/, '');
 
 export const apiClient = axios.create({
   baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json'
-  },
-  withCredentials: false
+  }
 });
 
 export async function apiRequest<T = unknown>(
