@@ -9,6 +9,7 @@ from datetime import datetime, timedelta
 import logging
 import requests
 import asyncio
+from dotenv import load_dotenv
 from typing import Dict, Optional, Any, List
 from contextlib import asynccontextmanager
 import httpx
@@ -16,8 +17,13 @@ import httpx
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+load_dotenv()
+
 MODEL_SERVICE_URL = os.environ.get("MODEL_SERVICE_URL")
 MODEL_SERVICE_BASE = MODEL_SERVICE_URL.rstrip("/") if MODEL_SERVICE_URL else None
+
+print(MODEL_SERVICE_URL)
+print(MODEL_SERVICE_BASE)
 
 model_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "models")
 
