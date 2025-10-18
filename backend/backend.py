@@ -45,24 +45,6 @@ app = FastAPI(
 )
 def load_models():
     global available_pairs
-
-    if MODEL_SERVICE_BASE:
-        logger.info("MODEL_SERVICE_URL detected. Skipping local model loading and pulling pairs from remote service.")
-        try:
-            response = requests.get(f"{MODEL_SERVICE_BASE}/pairs", timeout=10)
-            response.raise_for_status()
-            data = response.json()
-            pairs = data.get("pairs", [])
-            if not isinstance(pairs, list):
-                raise ValueError("Remote /pairs response is not a list")
-            available_pairs = pairs
-            models.clear()
-            logger.info("Registered %d remote currency pairs", len(available_pairs))
-        except Exception as exc:
-            available_pairs = []
-            logger.error("Failed to retrieve pairs from remote model service: %s", exc)
-        return
-
     if not os.path.exists(model_dir):
         print(f"There is no {model_dir} directory")
         return
@@ -110,62 +92,62 @@ def get_available_pairs():
         return {"pairs": available_pairs}
     return {"pairs": list(models.keys())}
 
-@app.post("/api/predict", response_model=PredictiononResponse)
-async def predict(request: PredictiononRequest):
+# @app.post("/api/predict", response_model=PredictiononResponse)
+# async def predict(request: PredictiononRequest):
     
-    pair = request.pair
-    days = min(request.days, 90)
-    logger.info(f"Received prediction request for {pair} for {days} days.")
+#     pair = request.pair
+#     days = min(request.days, 90)
+#     logger.info(f"Received prediction request for {pair} for {days} days.")
 
-    if MODEL_SERVICE_BASE:
-        try:
-            async with httpx.AsyncClient(timeout=60.0) as client:
-                response = await client.post(
-                    f"{MODEL_SERVICE_BASE}/predict",
-                    json=request.model_dump()
-                )
-                response.raise_for_status()
-                data = response.json()
-                logger.info("Forwarded prediction to remote model service for %s", pair)
-                return data
-        except httpx.HTTPStatusError as exc:
-            logger.error("Remote model service returned error %s: %s", exc.response.status_code, exc.response.text)
-            raise HTTPException(status_code=exc.response.status_code, detail=exc.response.text)
-        except Exception as exc:
-            logger.error("Failed to reach remote model service: %s", exc)
-            raise HTTPException(status_code=502, detail="Unable to reach remote model service")
+#     if MODEL_SERVICE_BASE:
+#         try:
+#             async with httpx.AsyncClient(timeout=60.0) as client:
+#                 response = await client.post(
+#                     f"{MODEL_SERVICE_BASE}/predict",
+#                     json=request.model_dump()
+#                 )
+#                 response.raise_for_status()
+#                 data = response.json()
+#                 logger.info("Forwarded prediction to remote model service for %s", pair)
+#                 return data
+#         except httpx.HTTPStatusError as exc:
+#             logger.error("Remote model service returned error %s: %s", exc.response.status_code, exc.response.text)
+#             raise HTTPException(status_code=exc.response.status_code, detail=exc.response.text)
+#         except Exception as exc:
+#             logger.error("Failed to reach remote model service: %s", exc)
+#             raise HTTPException(status_code=502, detail="Unable to reach remote model service")
 
-    if pair not in models:
-        logger.error(f"Model for pair {pair} not found")
-        raise HTTPException(status_code=404, detail="This pair does not exist for the model")
+#     if pair not in models:
+#         logger.error(f"Model for pair {pair} not found")
+#         raise HTTPException(status_code=404, detail="This pair does not exist for the model")
     
-    model = models[pair]
+#     model = models[pair]
     
-    try:
+#     try:
         
-        logger.info("Creating future dataframe...")
-        future = model.make_future_dataframe(periods=days)
+#         logger.info("Creating future dataframe...")
+#         future = model.make_future_dataframe(periods=days)
 
-        logger.info("Making prediction...")       
-        forecast = model.predict(future)
-        logger.info("Prediction successful.")
+#         logger.info("Making prediction...")       
+#         forecast = model.predict(future)
+#         logger.info("Prediction successful.")
 
-        forecast_values = forecast['yhat'].tail(days).tolist()
-        forecast_dates = [d.strftime("%Y-%m-%d") for d in forecast["ds"].tail(days).tolist()]
-        lower_bounds = forecast['yhat_lower'].tail(days).tolist()
-        upper_bounds = forecast['yhat_upper'].tail(days).tolist()
+#         forecast_values = forecast['yhat'].tail(days).tolist()
+#         forecast_dates = [d.strftime("%Y-%m-%d") for d in forecast["ds"].tail(days).tolist()]
+#         lower_bounds = forecast['yhat_lower'].tail(days).tolist()
+#         upper_bounds = forecast['yhat_upper'].tail(days).tolist()
 
-        logger.info(f"Returning forecast data for {pair}.")
-        return {
-            "pair": pair,
-            "forecast": forecast_values,
-            "dates": forecast_dates,
-            "lower_bound": lower_bounds,
-            "upper_bound": upper_bounds
-        }
-    except Exception as e:
-        logging.error(f"Error occured in prediction for {pair}")
-        raise HTTPException(status_code=500, detail=f"An internal error occurred while making the prediction: {e}")
+#         logger.info(f"Returning forecast data for {pair}.")
+#         return {
+#             "pair": pair,
+#             "forecast": forecast_values,
+#             "dates": forecast_dates,
+#             "lower_bound": lower_bounds,
+#             "upper_bound": upper_bounds
+#         }
+#     except Exception as e:
+#         logging.error(f"Error occured in prediction for {pair}")
+#         raise HTTPException(status_code=500, detail=f"An internal error occurred while making the prediction: {e}")
 
 @app.get("/api/health")
 def health_check():
