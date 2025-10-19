@@ -2,7 +2,7 @@
 A full-stack financial application featuring real-time forex rates and machine learning-powered price predictions across multiple currency pairs. 
 Built with automated data pipelines and Prophet time series forecasting.
 
-<img width="1408" height="684" alt="Screenshot 2025-10-06 at 20 42 10" src="https://github.com/user-attachments/assets/963f6c95-07d3-4527-b323-0c95701edbc8" />
+![Screen Recording 2025-10-19 at 08 58 07](https://github.com/user-attachments/assets/ed2035dd-4fe4-499d-8cb6-5c152f6b7735)
 
 ## ✨ Key Features
 - 📊 Real-Time Exchange Rates — Live currency data with automatic updates
