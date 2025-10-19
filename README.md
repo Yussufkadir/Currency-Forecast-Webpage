@@ -4,6 +4,9 @@ Built with automated data pipelines and Prophet time series forecasting.
 
 ![Screen Recording 2025-10-19 at 08 58 07](https://github.com/user-attachments/assets/ed2035dd-4fe4-499d-8cb6-5c152f6b7735)
 
+## 🌐 Live Demo
+URL:[Application](https://currency-forecast-webpage-m527.vercel.app)
+
 ## ✨ Key Features
 - 📊 Real-Time Exchange Rates — Live currency data with automatic updates
 - 🤖 ML Price Predictions — Prophet-based forecasting with confidence intervals
@@ -145,3 +148,6 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ## 📧 Contact
 Yussufkadir Syurmen — [Linkedin](https://www.linkedin.com/in/yussufkadir-syurmen-b3306b22b/)  — syurmen2@gmail.com
 Project Link: [Forex App](https://github.com/yourusername/forex-app).
+
+> [!NOTE]
+> This is a demonstration project. Predictions are for educational purposes only and should not be used for actual trading decisions.
