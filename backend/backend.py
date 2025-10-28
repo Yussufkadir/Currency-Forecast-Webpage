@@ -66,7 +66,7 @@ def load_models():
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:8000", "https://currency-forecast-webpage-m527.vercel.app/"],
+    allow_origins=["http://localhost:5173", "http://localhost:8000", "https://currency-forecast-webpage-m527.vercel.app/", "https://currency-forecast-webpage.vercel.app"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"]
