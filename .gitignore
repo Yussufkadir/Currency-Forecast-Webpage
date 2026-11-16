@@ -1,2 +1,8 @@
 access_token.txt
 node_modules
+
+# raw candles downloaded by pipeline/download_data.py
+/raw/
+
+# python bytecode
+__pycache__/

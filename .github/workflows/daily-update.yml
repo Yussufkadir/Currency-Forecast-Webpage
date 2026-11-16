@@ -1,0 +1,81 @@
+name: Daily data + model update
+
+on:
+  schedule:
+    # 06:00 UTC Monday-Saturday, after each trading day (forex is closed from Friday 22:00 to Sunday 22:00 UTC)
+    - cron: "0 6 * * 1-6"
+  workflow_dispatch: # "Run workflow" button for manual runs
+
+permissions:
+  contents: write # to commit pipeline/last_run.json back to the repo
+
+concurrency:
+  group: daily-update
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: pipeline/requirements.txt
+
+      - uses: actions/setup-java@v4 # pyspark needs a JVM
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Install dependencies
+        run: pip install -r pipeline/requirements.txt
+
+      - name: Download the last 100 days of M1 candles
+        # ~140 requests paced for the free plan's 8 per minute, takes ~20 minutes
+        env:
+          TWELVE_DATA_API_KEY: ${{ secrets.TWELVE_DATA_API_KEY }}
+        run: python pipeline/download_data.py raw --days 100
+
+      - name: Clean, remove outliers, engineer features
+        run: python pipeline/transform.py raw processed
+
+      - name: Train Prophet models
+        run: python backend/model.py processed models
+
+      - name: Upload models to the Hugging Face Space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          python - <<'EOF'
+          from huggingface_hub import HfApi
+          HfApi().upload_folder(
+              repo_id="syurmen/Currency-Forex-App",
+              repo_type="space",
+              folder_path="models",
+              path_in_repo="models",
+              allow_patterns="*_model.pkl",
+              commit_message="Daily model update",
+          )
+          EOF
+
+      - name: Record the run and commit it
+        # a small daily commit keeps the repo active, GitHub disables scheduled workflows after 60 days without activity
+        run: |
+          python - <<'EOF'
+          import json, os, datetime
+          import pandas as pd
+          summary = {"updated_at_utc": datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds"), "pairs": {}}
+          for f in sorted(os.listdir("processed")):
+              df = pd.read_csv(os.path.join("processed", f), usecols=["Time", "Close"])
+              summary["pairs"][f.split("_")[0]] = {"rows": len(df), "from": df.Time.iloc[0], "to": df.Time.iloc[-1], "last_close": df.Close.iloc[-1]}
+          json.dump(summary, open("pipeline/last_run.json", "w"), indent=2)
+          EOF
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add pipeline/last_run.json
+          git commit -m "chore: daily data and model update" || echo "nothing to commit"
+          git push

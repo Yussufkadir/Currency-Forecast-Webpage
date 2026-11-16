@@ -1,13 +1,8 @@
 from prophet import Prophet
 import pandas as pd
-import numpy as np 
-import matplotlib.pyplot as plt 
-import seaborn as sns
-from prophet import Prophet
 import sys
 import os
 import joblib
-from sklearn.preprocessing import StandardScaler
 
 
 def anchor_to_last_close(model, history):
@@ -72,8 +67,9 @@ def create_and_save_models(data_dir, models_dir):
 if __name__ == "__main__":
     local_path = os.path.dirname(os.path.abspath(__file__))
     root_path = os.path.dirname(local_path)
-    data_dir = os.path.join(root_path, "processed")
-    models_dir = os.path.join(root_path, "models")
+    # optional args so the daily job can point at other folders: python model.py [data_dir] [models_dir]
+    data_dir = sys.argv[1] if len(sys.argv) > 1 else os.path.join(root_path, "processed")
+    models_dir = sys.argv[2] if len(sys.argv) > 2 else os.path.join(root_path, "models")
     results = create_and_save_models(data_dir, models_dir)
     print("\nTraining Results:")
     for pair, status in results.items():

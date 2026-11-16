@@ -1,0 +1,12 @@
+model,MAPE %,MAPE day 1,MAPE days 2-3,MAPE days 4-5,weeks beating naive (of 16)
+minute + MA20/Bollinger band regressors,0.628,0.238,0.601,0.869,11
+naive: last close,0.636,0.242,0.614,0.872,0
+"hourly, no weekly, cps 0.01 (current production), anchored",0.708,0.24,0.565,1.115,5
+"hourly, weekly, cps 0.01, anchored",0.765,0.25,0.626,1.194,6
+"minute, weekly, cps 0.01 (previous production), anchored",0.819,0.235,0.66,1.307,6
+"hourly, no weekly, cps 0.01 (current production)",0.894,0.561,0.729,1.251,4
+"hourly, weekly, cps 0.01",0.911,0.574,0.737,1.281,4
+minute + ATR14/RSI14/MACD regressors,0.914,0.596,0.718,1.298,4
+"minute, weekly, cps 0.01 (previous production)",0.923,0.604,0.724,1.309,4
+"hourly, weekly, cps 0.1, changepoint_range 0.95, anchored",1.298,0.377,1.1,2.009,3
+"hourly, weekly, cps 0.1, changepoint_range 0.95",1.678,0.741,1.488,2.388,1
