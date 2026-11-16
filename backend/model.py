@@ -74,3 +74,6 @@ if __name__ == "__main__":
     print("\nTraining Results:")
     for pair, status in results.items():
         print(f"{pair}: {status}")
+    # a non-zero exit stops the daily job before it uploads stale models
+    if not results or any(status != "Success" for status in results.values()):
+        sys.exit(1)
